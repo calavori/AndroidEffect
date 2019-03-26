@@ -18,11 +18,14 @@ import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.v7.app.AppCompatActivity;
 import android.text.format.DateFormat;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
+
+import org.bytedeco.javacv.FrameFilter;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,6 +52,7 @@ public class ImageEdit extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_image_edit);
+        getActionBar().setTitle("Choose your effects");
     }
 
     @Override
@@ -56,20 +60,17 @@ public class ImageEdit extends Activity {
         super.onStart();
         String value = new String();
         Intent edit = getIntent();
-        if (edit.hasExtra("byteArray")) {
-            Bundle extras = edit.getExtras();
-            byte[] byteArray = extras.getByteArray("byteArray");
-
-            src_bmp = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
-        } else if (edit.hasExtra("string")) {
             try {
                 value = edit.getStringExtra("string");
                 src_bmp = MediaStore.Images.Media.getBitmap(this.getContentResolver(), Uri.parse(value));
             } catch (Exception e) {
                 System.out.print(e);
             }
-        }
-
+            if (src_bmp.getWidth() > src_bmp.getHeight()) {
+                Matrix matrix = new Matrix();
+                matrix.postRotate(90);
+                src_bmp = Bitmap.createBitmap(src_bmp , 0, 0, src_bmp.getWidth(), src_bmp.getHeight(), matrix, true);
+            }
         this.imageView = this.findViewById(R.id.imageView);
         imageView.setImageBitmap(src_bmp);
         final_bmp = src_bmp;
