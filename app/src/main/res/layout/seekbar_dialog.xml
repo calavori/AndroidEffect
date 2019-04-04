@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/seed"
+        android:layout_width="412dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginLeft="0dp"
+        android:text="Seed"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <TextView
+        android:id="@+id/shift"
+        android:layout_width="412dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/seed_bar"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginLeft="0dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="0dp"
+        android:layout_marginRight="0dp"
+        android:text="RBG Shift"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <TextView
+        android:id="@+id/thickness"
+        android:layout_width="412dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/shift_bar"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginLeft="0dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="0dp"
+        android:layout_marginRight="0dp"
+        android:text="Thickness"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <SeekBar
+        android:id="@+id/seed_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/seed"
+        android:layout_alignStart="@+id/seed"
+        android:layout_alignLeft="@+id/seed"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:max="20"
+        android:progress="0"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <SeekBar
+        android:id="@+id/shift_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/shift"
+        android:layout_alignStart="@+id/shift"
+        android:layout_alignLeft="@+id/shift"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:max="200"
+        android:progress="0"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <SeekBar
+        android:id="@+id/thickness_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/thickness"
+        android:layout_alignStart="@+id/thickness"
+        android:layout_alignLeft="@+id/thickness"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:max="450"
+        android:progress="0"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <Button
+        android:id="@+id/ok_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:layout_below="@+id/thickness_bar"
+        android:layout_alignLeft="@+id/thickness_bar"
+        android:layout_alignStart="@+id/thickness_bar"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:text="OK" />
+
+</RelativeLayout>

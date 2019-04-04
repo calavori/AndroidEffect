@@ -42,7 +42,7 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        getActionBar().setTitle("Android Effects");
+//        getActionBar().setTitle("Android Effects");
         PermissionListener permissionlistener = new PermissionListener() {
             @Override
             public void onPermissionGranted() {

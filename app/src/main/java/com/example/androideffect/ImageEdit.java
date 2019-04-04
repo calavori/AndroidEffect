@@ -1,6 +1,7 @@
 package com.example.androideffect;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
@@ -20,9 +21,12 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.text.format.DateFormat;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.bytedeco.javacv.FrameFilter;
@@ -46,13 +50,14 @@ public class ImageEdit extends Activity {
     private ImageView imageView;
     private Bitmap src_bmp;
     private Bitmap final_bmp;
+    private GlitchInfo glitchInfo;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_image_edit);
-        getActionBar().setTitle("Choose your effects");
+//        getActionBar().setTitle("Choose your effects");
     }
 
     @Override
@@ -105,8 +110,9 @@ public class ImageEdit extends Activity {
         this.glitchbutton.setOnClickListener(new Button.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final_bmp = glitch(final_bmp);
-                imageView.setImageBitmap(final_bmp);
+                setGitchInfo();
+//                final_bmp = glitch(final_bmp);
+//                imageView.setImageBitmap(final_bmp);
             }
         });
 
@@ -171,6 +177,47 @@ public class ImageEdit extends Activity {
         canvas.drawBitmap(effect_bmp, null, new RectF(0, 0, src.getWidth(), src.getHeight()), paint);
         //
         return final_bmp;
+    }
+
+    //chinh thong so glitch
+    private void setGitchInfo(){
+        final AlertDialog.Builder popDialog = new AlertDialog.Builder(this);
+        TextView seed = (TextView) findViewById(R.id.seed);
+        SeekBar seed_bar = (SeekBar) findViewById(R.id.seed_bar);
+        TextView shift = (TextView) findViewById(R.id.shift);
+        SeekBar shift_bar = (SeekBar) findViewById(R.id.shift_bar);
+        TextView thickness = (TextView) findViewById(R.id.thickness);
+        SeekBar thickness_bar = (SeekBar) findViewById(R.id.thickness_bar);
+        Button ok_button = (Button) findViewById(R.id.ok_button);
+        popDialog.setView(R.layout.seekbar_dialog);
+
+        //keo thanh seed
+        seed_bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            int progress = 0;
+
+            // Khi giá trị progress thay đổi.
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progressValue, boolean fromUser) {
+                progress = progressValue;
+                Toast.makeText(getApplicationContext(), progress, Toast.LENGTH_SHORT).show();
+            }
+
+            // Khi người dùng bắt đầu cử chỉ kéo thanh gạt.
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                Toast.makeText(getApplicationContext(), progress, Toast.LENGTH_SHORT).show();
+            }
+
+            // Khi người dùng kết thúc cử chỉ kéo thanh gạt.
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                Toast.makeText(getApplicationContext(), progress, Toast.LENGTH_SHORT).show();
+                glitchInfo.setSeed(progress);
+            }
+        });
+
+        popDialog.create();
+        popDialog.show();
     }
 
     private Bitmap glitch(Bitmap src){
