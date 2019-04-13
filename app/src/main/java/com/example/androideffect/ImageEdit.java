@@ -2,6 +2,7 @@ package com.example.androideffect;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Intent;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
@@ -51,7 +52,6 @@ public class ImageEdit extends Activity {
     private Bitmap src_bmp;
     private Bitmap final_bmp;
     private GlitchInfo glitchInfo;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,8 +111,6 @@ public class ImageEdit extends Activity {
             @Override
             public void onClick(View v) {
                 setGitchInfo();
-//                final_bmp = glitch(final_bmp);
-//                imageView.setImageBitmap(final_bmp);
             }
         });
 
@@ -181,83 +179,116 @@ public class ImageEdit extends Activity {
 
     //chinh thong so glitch
     private void setGitchInfo(){
-        final AlertDialog.Builder popDialog = new AlertDialog.Builder(this);
-        TextView seed = (TextView) findViewById(R.id.seed);
-        SeekBar seed_bar = (SeekBar) findViewById(R.id.seed_bar);
-        TextView shift = (TextView) findViewById(R.id.shift);
-        SeekBar shift_bar = (SeekBar) findViewById(R.id.shift_bar);
-        TextView thickness = (TextView) findViewById(R.id.thickness);
-        SeekBar thickness_bar = (SeekBar) findViewById(R.id.thickness_bar);
-        Button ok_button = (Button) findViewById(R.id.ok_button);
-        popDialog.setView(R.layout.seekbar_dialog);
+        glitchInfo = new GlitchInfo();
+        final Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.seekbar_dialog);
+        dialog.setCancelable(true);
+        TextView seed = (TextView) dialog.findViewById(R.id.seed);
+        SeekBar seed_bar = (SeekBar) dialog.findViewById(R.id.seed_bar);
+        TextView shift = (TextView) dialog.findViewById(R.id.shift);
+        SeekBar shift_bar = (SeekBar) dialog.findViewById(R.id.shift_bar);
+        TextView thickness = (TextView) dialog.findViewById(R.id.thickness);
+        SeekBar thickness_bar = (SeekBar) dialog.findViewById(R.id.thickness_bar);
+        Button ok_button = (Button) dialog.findViewById(R.id.ok_button);
 
-        //keo thanh seed
+        // seed
         seed_bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             int progress = 0;
-
-            // Khi giá trị progress thay đổi.
             @Override
             public void onProgressChanged(SeekBar seekBar, int progressValue, boolean fromUser) {
                 progress = progressValue;
-                Toast.makeText(getApplicationContext(), progress, Toast.LENGTH_SHORT).show();
             }
-
-            // Khi người dùng bắt đầu cử chỉ kéo thanh gạt.
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
-                Toast.makeText(getApplicationContext(), progress, Toast.LENGTH_SHORT).show();
             }
-
-            // Khi người dùng kết thúc cử chỉ kéo thanh gạt.
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                Toast.makeText(getApplicationContext(), progress, Toast.LENGTH_SHORT).show();
+                Toast.makeText(ImageEdit.this, "Seed: " + String.valueOf(progress), Toast.LENGTH_SHORT).show();
                 glitchInfo.setSeed(progress);
             }
         });
 
-        popDialog.create();
-        popDialog.show();
+        // rbg_shift
+        shift_bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            int progress = 0;
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progressValue, boolean fromUser) {
+                progress = progressValue;
+            }
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                Toast.makeText(ImageEdit.this, "RBG Shift: " + String.valueOf(progress), Toast.LENGTH_SHORT).show();
+                glitchInfo.setRbg_shift(progress);
+            }
+        });
+
+        // Thickness
+        thickness_bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            int progress = 0;
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progressValue, boolean fromUser) {
+                progress = progressValue;
+            }
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                Toast.makeText(ImageEdit.this, "Thickness: " + String.valueOf(progress), Toast.LENGTH_SHORT).show();
+                glitchInfo.setThickness(progress);
+            }
+        });
+
+        //ok button
+        ok_button.setOnClickListener(new Button.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                glitch(final_bmp, glitchInfo.getSeed(), glitchInfo.getRbg_shift(), glitchInfo.getThickness());
+                imageView.setImageBitmap(final_bmp);
+            }
+        });
+        dialog.show();
     }
 
-    private Bitmap glitch(Bitmap src){
+    private Bitmap glitch (Bitmap src, int seed, int shift, int thickness){
         try {
             final_bmp = Bitmap.createBitmap(src.getWidth(), src.getHeight(), src.getConfig());
             Canvas canvas = new Canvas(final_bmp);
             canvas.drawBitmap(src, new Matrix(), null);
-
-            //blend mau
             Bitmap btemp = null;
-            Paint p = new Paint();
-            ColorFilter blue_filter = new LightingColorFilter(Color.BLUE,0);
-            ColorFilter green_filter = new LightingColorFilter(Color.GREEN,0);
-            btemp = Bitmap.createBitmap(final_bmp, 80, 0, final_bmp.getWidth()-80, final_bmp.getHeight());
-            Canvas filter = new Canvas(btemp);
-            p.setColorFilter(blue_filter);
-            filter.drawBitmap(final_bmp, new Matrix(), p);
-            p.setAlpha(40);
-            canvas.drawBitmap(btemp, 0, 0, p);
-
-            btemp = Bitmap.createBitmap(final_bmp, 0, 0, final_bmp.getWidth()-80, final_bmp.getHeight());
-            filter.setBitmap(btemp);
-            p.setColorFilter(green_filter);
-            filter.drawBitmap(final_bmp, new Matrix(), p);
-            p.setAlpha(40);
-            canvas.drawBitmap(btemp, 80, 0, p);
 
             //glitch
             Random r = new Random();
-            for(int i=0; i<= 20; i++) {
-                int x = r.nextInt(final_bmp.getWidth() - 0) + 0;
-                int y = r.nextInt(final_bmp.getHeight() - 0) + 0;
-                int width = r.nextInt(final_bmp.getWidth()/3 - final_bmp.getWidth()/4) + final_bmp.getWidth()/4;
-                int height = r.nextInt(final_bmp.getHeight()/20 - final_bmp.getHeight()/25) + final_bmp.getHeight()/15;
-                btemp = Bitmap.createBitmap(final_bmp, x, y, width, height);
+            for(int i=0; i<= seed; i++) {
+                int x = r.nextInt(src.getWidth()/4 - 0) + 0;
+                int y = r.nextInt((3*src.getHeight()/4) - (src.getHeight()/4)) + (src.getHeight()/4);
+                int width = src.getWidth() - (x+100);
+                int height = r.nextInt(thickness - (thickness*80/100)) + (thickness*80/100);
+                btemp = Bitmap.createBitmap(src, x, y, width, height);
                 canvas.drawBitmap(btemp, x + 100, y, null);
-                if((x+100+width)> final_bmp.getWidth() || (y+height) > final_bmp.getHeight()){
-                    i--;
-                }
             }
+
+            //
+            Paint p = new Paint();
+            btemp = Bitmap.createBitmap(src, shift, 0, src.getWidth()-shift, src.getHeight());
+            Canvas filter = new Canvas(btemp);
+            p.setAlpha(70);
+            canvas.drawBitmap(btemp, 0, 0, p);
+
+            //ghep anh scanline
+            Bitmap effect_bmp = null;
+            if(src.getHeight()/src.getWidth() == 16/9) {
+                effect_bmp = getBitmapFromAssets("scanline16.png");
+            }
+            else if (src.getHeight()/src.getWidth() == 4/3) {
+                effect_bmp = getBitmapFromAssets("scanline4.png");
+            }
+            p.setAlpha(20);
+            canvas.drawBitmap(effect_bmp, null, new RectF(0, 0, src.getWidth(), src.getHeight()), p);
 
         } catch (Exception e){}
         return final_bmp;
