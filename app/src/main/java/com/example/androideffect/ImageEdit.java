@@ -1,28 +1,29 @@
 package com.example.androideffect;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.ColorFilter;
-import android.graphics.ColorMatrix;
-import android.graphics.ColorMatrixColorFilter;
-import android.graphics.LightingColorFilter;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
 import android.graphics.RectF;
-import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.support.v7.app.AppCompatActivity;
+import android.renderscript.Allocation;
+import android.renderscript.Element;
+import android.renderscript.RenderScript;
+import android.renderscript.ScriptIntrinsicBlur;
 import android.text.format.DateFormat;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -30,13 +31,18 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.bytedeco.javacv.FrameFilter;
+import com.google.android.gms.vision.Frame;
+import com.google.android.gms.vision.face.Face;
+import com.google.android.gms.vision.face.FaceDetector;
+import com.google.android.gms.vision.face.Landmark;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.Random;
 
+
+import static android.content.ContentValues.TAG;
 import static org.bytedeco.javacpp.opencv_core.*;
 
 
@@ -111,6 +117,16 @@ public class ImageEdit extends Activity {
             @Override
             public void onClick(View v) {
                 setGitchInfo();
+            }
+        });
+
+        //change eye color
+        this.eyebutton.setOnClickListener(new Button.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+//                final_bmp = changeEyeColor(final_bmp);
+                final_bmp = applyReflection(final_bmp);
+                imageView.setImageBitmap(final_bmp);
             }
         });
 
@@ -287,13 +303,142 @@ public class ImageEdit extends Activity {
             else if (src.getHeight()/src.getWidth() == 4/3) {
                 effect_bmp = getBitmapFromAssets("scanline4.png");
             }
-            p.setAlpha(20);
+            p.setAlpha(15);
             canvas.drawBitmap(effect_bmp, null, new RectF(0, 0, src.getWidth(), src.getHeight()), p);
 
         } catch (Exception e){}
         return final_bmp;
     }
 
+    //change eye color
+//    private Bitmap changeEyeColor(Bitmap src) {
+//        //nhan dien mat
+//        FaceDetector detector = new FaceDetector.Builder(this)
+//                .setTrackingEnabled(false)
+//                .setMode(FaceDetector.FAST_MODE)
+//                .setLandmarkType(FaceDetector.ALL_LANDMARKS)
+//                .build();
+//
+//        Frame frame = new Frame.Builder().setBitmap(src).build();
+//        SparseArray<Face> faces = detector.detect(frame);
+//
+//        if (!detector.isOperational()) {
+//            Log.w(TAG, "Face detector dependencies are not yet available.");
+//            IntentFilter lowStorageFilter = new IntentFilter(Intent.ACTION_DEVICE_STORAGE_LOW);
+//            boolean hasLowStorage = registerReceiver(null, lowStorageFilter) != null;
+//
+//            if (hasLowStorage) {
+//                Toast.makeText(this, "Not enough memory to download library", Toast.LENGTH_LONG).show();
+//                Log.w(TAG, "Not enough memory to download library");
+//            }
+//        }
+//
+//        final_bmp =  Bitmap.createBitmap(src.getWidth(), src.getHeight(), src.getConfig());
+//        Canvas canvas = new Canvas(final_bmp);
+//        canvas.drawBitmap(src, new Matrix(), null);
+//        Paint paint = new Paint();
+//        paint.setColor(Color.WHITE);
+//
+//        for (int i = 0; i < faces.size(); ++i) {
+//            Face face = faces.valueAt(i);
+//           for (Landmark landmark : face.getLandmarks()) {
+////                switch (landmark.getType()) {
+////                    case Landmark.LEFT_EYE:
+//                        int cx = (int) (landmark.getPosition().x);
+//                        int cy = (int) (landmark.getPosition().y);
+//                        canvas.drawCircle(cx, cy, 10, paint);
+////                        break;
+////                    case Landmark.RIGHT_EYE:
+////                        cx = (int) (landmark.getPosition().x);
+////                        cy = (int) (landmark.getPosition().y);
+////                        canvas.drawCircle(cx,  cy, 10, paint);
+////                        break;
+////                }
+//            }
+//        }
+//        detector.release();
+//        return final_bmp;
+//    }
+
+    //guong
+    public Bitmap applyReflection(Bitmap src) {
+        src = resize(src, src.getWidth()/2, src.getHeight()/2);
+        int width = src.getWidth();
+        int height = src.getHeight();
+
+        Matrix matrix = new Matrix();
+        matrix.preScale(1, -1);
+
+        //tao anh phan chieu
+        Bitmap reflectionImage = Bitmap.createBitmap(src, 0,
+                0, width, height , matrix, false);
+
+        reflectionImage=Bitmap.createScaledBitmap(reflectionImage, reflectionImage.getWidth()/8, reflectionImage.getHeight()/8, true);
+
+        reflectionImage=Bitmap.createScaledBitmap(reflectionImage, reflectionImage.getWidth()*8, reflectionImage.getHeight()*8, true);
+
+        reflectionImage=Bitmap.createScaledBitmap(reflectionImage, width, (3*height/4), true);
+
+        //lam mo anh phan chieu
+        reflectionImage = blur(reflectionImage);
+
+        //ghep song vao anh phan chieu
+
+
+
+        //ghepp anh phan chieu
+        android.graphics.Bitmap reflectedBitmap = Bitmap.createBitmap(width, (height + (3 * height / 4)), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(reflectedBitmap);
+        canvas.drawBitmap(src, 0, 0, null);
+        Paint defaultPaint = new Paint();
+        canvas.drawRect(0, height, width, height, defaultPaint);
+
+        canvas.drawBitmap(reflectionImage, 0, height, null);
+        Paint paint = new Paint();
+
+        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_IN));
+        canvas.drawRect(0, height, width, reflectedBitmap.getHeight()
+                    , paint);
+        return reflectedBitmap;
+
+    }
+
+    //lam mo anh
+    public Bitmap blur(Bitmap image) {
+        if (null == image) return null;
+        Bitmap outputBitmap = Bitmap.createBitmap(image);
+        final RenderScript renderScript = RenderScript.create(this);
+        Allocation tmpIn = Allocation.createFromBitmap(renderScript, image);
+        Allocation tmpOut = Allocation.createFromBitmap(renderScript, outputBitmap);
+        //Intrinsic Gausian blur filter
+        ScriptIntrinsicBlur theIntrinsic = ScriptIntrinsicBlur.create(renderScript, Element.U8_4(renderScript));
+        theIntrinsic.setRadius(15f);
+        theIntrinsic.setInput(tmpIn);
+        theIntrinsic.forEach(tmpOut);
+        tmpOut.copyTo(outputBitmap);
+        return outputBitmap;
+    }
+
+    private Bitmap resize(Bitmap image, int maxWidth, int maxHeight) {
+        if (maxHeight > 0 && maxWidth > 0) {
+            int width = image.getWidth();
+            int height = image.getHeight();
+            float ratioBitmap = (float) width / (float) height;
+            float ratioMax = (float) maxWidth / (float) maxHeight;
+
+            int finalWidth = maxWidth;
+            int finalHeight = maxHeight;
+            if (ratioMax > ratioBitmap) {
+                finalWidth = (int) ((float) maxHeight * ratioBitmap);
+            } else {
+                finalHeight = (int) ((float) maxWidth / ratioBitmap);
+            }
+            image = Bitmap.createScaledBitmap(image, finalWidth, finalHeight, true);
+            return image;
+        } else {
+            return image;
+        }
+    }
 
     private Bitmap getBitmapFromAssets(String name){
         Bitmap bmp = null;

@@ -79,7 +79,7 @@
         android:layout_alignLeft="@+id/thickness"
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
-        android:max="450"
+        android:max="200"
         android:progress="0"
         android:textAppearance="?android:attr/textAppearanceSmall" />
 
