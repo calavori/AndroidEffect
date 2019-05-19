@@ -3,12 +3,10 @@ package com.example.androideffect;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
@@ -23,7 +21,6 @@ import android.renderscript.RenderScript;
 import android.renderscript.ScriptIntrinsicBlur;
 import android.text.format.DateFormat;
 import android.util.Log;
-import android.util.SparseArray;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -31,19 +28,16 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.vision.Frame;
-import com.google.android.gms.vision.face.Face;
-import com.google.android.gms.vision.face.FaceDetector;
-import com.google.android.gms.vision.face.Landmark;
+
+import com.example.androideffect.filter.AndroidUtils;
+import com.example.androideffect.filter.RippleFilter;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.Random;
 
-
 import static android.content.ContentValues.TAG;
-import static org.bytedeco.javacpp.opencv_core.*;
 
 
 public class ImageEdit extends Activity {
@@ -51,13 +45,14 @@ public class ImageEdit extends Activity {
     private Button snowbutton;
     private Button mirrorbutton;
     private Button glitchbutton;
-    private Button eyebutton;
+    private Button waterbutton;
     private Button resetbutton;
     private Button savebutton;
     private ImageView imageView;
     private Bitmap src_bmp;
     private Bitmap final_bmp;
     private GlitchInfo glitchInfo;
+    private int snowLevel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,7 +85,7 @@ public class ImageEdit extends Activity {
         this.snowbutton = (Button) this.findViewById(R.id.snowbutton);
         this.mirrorbutton = (Button) this.findViewById(R.id.mirrorbutton);
         this.glitchbutton = (Button) this.findViewById(R.id.glitchbutton);
-        this.eyebutton = (Button) this.findViewById(R.id.eyebutton);
+        this.waterbutton = (Button) this.findViewById(R.id.waterbutton);
         this.resetbutton = (Button) this.findViewById(R.id.resetbutton);
         this.savebutton = (Button) this.findViewById(R.id.savebutton);
 
@@ -98,8 +93,13 @@ public class ImageEdit extends Activity {
         this.snowbutton.setOnClickListener(new Button.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final_bmp = snow(final_bmp);
-                imageView.setImageBitmap(final_bmp);
+                if(supported(final_bmp)==true) {
+                    setSnowInfo();
+
+                }
+                else {
+                    Toast.makeText(ImageEdit.this, "Photo format is not supported, please try again with 16:9 or 4:3 ratio", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -107,8 +107,13 @@ public class ImageEdit extends Activity {
         this.mirrorbutton.setOnClickListener(new Button.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final_bmp = mirror(final_bmp);
-                imageView.setImageBitmap(final_bmp);
+                if(supported(final_bmp)==true) {
+                    final_bmp = mirror(final_bmp);
+                    imageView.setImageBitmap(final_bmp);
+                }
+                else {
+                    Toast.makeText(ImageEdit.this, "Photo format is not supported, please try again with 16:9 or 4:3 ratio", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -116,16 +121,20 @@ public class ImageEdit extends Activity {
         this.glitchbutton.setOnClickListener(new Button.OnClickListener() {
             @Override
             public void onClick(View v) {
-                setGitchInfo();
+                if(supported(final_bmp)==true) {
+                    setGitchInfo();
+                }
+                else {
+                    Toast.makeText(ImageEdit.this, "Photo format is not supported, please try again with 16:9 or 4:3 ratio", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
-        //change eye color
-        this.eyebutton.setOnClickListener(new Button.OnClickListener() {
+        //water reflect
+        this.waterbutton.setOnClickListener(new Button.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                final_bmp = changeEyeColor(final_bmp);
-                final_bmp = applyReflection(final_bmp);
+                final_bmp = waterReflection(final_bmp);
                 imageView.setImageBitmap(final_bmp);
             }
         });
@@ -150,26 +159,64 @@ public class ImageEdit extends Activity {
 
     }
 
+    private void setSnowInfo(){
+        final Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.set_snow_dialog);
+        dialog.setCancelable(true);
+        TextView level = (TextView) dialog.findViewById(R.id.level);
+        SeekBar level_bar = (SeekBar) dialog.findViewById(R.id.level_bar);
+        Button ok_button = (Button) dialog.findViewById(R.id.ok_button);
 
-    private Bitmap snow(Bitmap src){
+        level_bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            int progress = 0;
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progressValue, boolean fromUser) {
+                progress = progressValue;
+            }
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                Toast.makeText(ImageEdit.this, "Level: " + String.valueOf(progress), Toast.LENGTH_SHORT).show();
+                snowLevel = progress;
+            }
+        });
+        //ok button
+        ok_button.setOnClickListener(new Button.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                if(snowLevel != 0) {
+                    final_bmp = snow(final_bmp, snowLevel);
+                    imageView.setImageBitmap(final_bmp);
+                    snowLevel = 0;
+                }
+            }
+        });
+        dialog.show();
+    }
+
+    private Bitmap snow(Bitmap src, int lv){
         Bitmap effect_bmp = null;
         if(src.getHeight()/src.getWidth() == 16/9) {
-            effect_bmp = getBitmapFromAssets("snow16.png");
+            effect_bmp = getBitmapFromAssets("snow16-" + lv +".png");
         }
         else if (src.getHeight()/src.getWidth() == 4/3) {
-            effect_bmp = getBitmapFromAssets("snow4.png");
+            effect_bmp = getBitmapFromAssets("snow4-" + lv +".png");
         }
         //xu li anh
         Paint paint = new Paint();
         paint.setAntiAlias(true);
         paint.setFilterBitmap(true);
         paint.setDither(true);
-        final_bmp =  Bitmap.createBitmap(src.getWidth(), src.getHeight(), src.getConfig());
-        Canvas canvas = new Canvas(final_bmp);
+        Bitmap dst =  Bitmap.createBitmap(src.getWidth(), src.getHeight(), src.getConfig());
+        Canvas canvas = new Canvas(dst);
         canvas.drawBitmap(src, new Matrix(), null);
         canvas.drawBitmap(effect_bmp, null, new RectF(0, 0, src.getWidth(), src.getHeight()), paint);
         //
-        return final_bmp;
+        return dst;
+
       }
 
     private Bitmap mirror(Bitmap src){
@@ -185,12 +232,12 @@ public class ImageEdit extends Activity {
         paint.setAntiAlias(true);
         paint.setFilterBitmap(true);
         paint.setDither(true);
-        final_bmp =  Bitmap.createBitmap(src.getWidth(), src.getHeight(), src.getConfig());
-        Canvas canvas = new Canvas(final_bmp);
+        Bitmap dst =  Bitmap.createBitmap(src.getWidth(), src.getHeight(), src.getConfig());
+        Canvas canvas = new Canvas(dst);
         canvas.drawBitmap(src, new Matrix(), null);
         canvas.drawBitmap(effect_bmp, null, new RectF(0, 0, src.getWidth(), src.getHeight()), paint);
         //
-        return final_bmp;
+        return dst;
     }
 
     //chinh thong so glitch
@@ -263,17 +310,19 @@ public class ImageEdit extends Activity {
             @Override
             public void onClick(View v) {
                 dialog.dismiss();
-                glitch(final_bmp, glitchInfo.getSeed(), glitchInfo.getRbg_shift(), glitchInfo.getThickness());
+                final_bmp = glitch(final_bmp, glitchInfo.getSeed(), glitchInfo.getRbg_shift(), glitchInfo.getThickness());
                 imageView.setImageBitmap(final_bmp);
+                glitchInfo = new GlitchInfo();
             }
         });
         dialog.show();
     }
 
     private Bitmap glitch (Bitmap src, int seed, int shift, int thickness){
+        Bitmap dst = null;
         try {
-            final_bmp = Bitmap.createBitmap(src.getWidth(), src.getHeight(), src.getConfig());
-            Canvas canvas = new Canvas(final_bmp);
+            dst = Bitmap.createBitmap(src.getWidth(), src.getHeight(), src.getConfig());
+            Canvas canvas = new Canvas(dst);
             canvas.drawBitmap(src, new Matrix(), null);
             Bitmap btemp = null;
 
@@ -292,7 +341,7 @@ public class ImageEdit extends Activity {
             Paint p = new Paint();
             btemp = Bitmap.createBitmap(src, shift, 0, src.getWidth()-shift, src.getHeight());
             Canvas filter = new Canvas(btemp);
-            p.setAlpha(70);
+            p.setAlpha(60);
             canvas.drawBitmap(btemp, 0, 0, p);
 
             //ghep anh scanline
@@ -307,61 +356,12 @@ public class ImageEdit extends Activity {
             canvas.drawBitmap(effect_bmp, null, new RectF(0, 0, src.getWidth(), src.getHeight()), p);
 
         } catch (Exception e){}
-        return final_bmp;
+        return dst;
     }
 
-    //change eye color
-//    private Bitmap changeEyeColor(Bitmap src) {
-//        //nhan dien mat
-//        FaceDetector detector = new FaceDetector.Builder(this)
-//                .setTrackingEnabled(false)
-//                .setMode(FaceDetector.FAST_MODE)
-//                .setLandmarkType(FaceDetector.ALL_LANDMARKS)
-//                .build();
-//
-//        Frame frame = new Frame.Builder().setBitmap(src).build();
-//        SparseArray<Face> faces = detector.detect(frame);
-//
-//        if (!detector.isOperational()) {
-//            Log.w(TAG, "Face detector dependencies are not yet available.");
-//            IntentFilter lowStorageFilter = new IntentFilter(Intent.ACTION_DEVICE_STORAGE_LOW);
-//            boolean hasLowStorage = registerReceiver(null, lowStorageFilter) != null;
-//
-//            if (hasLowStorage) {
-//                Toast.makeText(this, "Not enough memory to download library", Toast.LENGTH_LONG).show();
-//                Log.w(TAG, "Not enough memory to download library");
-//            }
-//        }
-//
-//        final_bmp =  Bitmap.createBitmap(src.getWidth(), src.getHeight(), src.getConfig());
-//        Canvas canvas = new Canvas(final_bmp);
-//        canvas.drawBitmap(src, new Matrix(), null);
-//        Paint paint = new Paint();
-//        paint.setColor(Color.WHITE);
-//
-//        for (int i = 0; i < faces.size(); ++i) {
-//            Face face = faces.valueAt(i);
-//           for (Landmark landmark : face.getLandmarks()) {
-////                switch (landmark.getType()) {
-////                    case Landmark.LEFT_EYE:
-//                        int cx = (int) (landmark.getPosition().x);
-//                        int cy = (int) (landmark.getPosition().y);
-//                        canvas.drawCircle(cx, cy, 10, paint);
-////                        break;
-////                    case Landmark.RIGHT_EYE:
-////                        cx = (int) (landmark.getPosition().x);
-////                        cy = (int) (landmark.getPosition().y);
-////                        canvas.drawCircle(cx,  cy, 10, paint);
-////                        break;
-////                }
-//            }
-//        }
-//        detector.release();
-//        return final_bmp;
-//    }
 
-    //guong
-    public Bitmap applyReflection(Bitmap src) {
+    //mat nuoc
+    public Bitmap waterReflection(Bitmap src) {
         src = resize(src, src.getWidth()/2, src.getHeight()/2);
         int width = src.getWidth();
         int height = src.getHeight();
@@ -370,24 +370,22 @@ public class ImageEdit extends Activity {
         matrix.preScale(1, -1);
 
         //tao anh phan chieu
-        Bitmap reflectionImage = Bitmap.createBitmap(src, 0,
-                0, width, height , matrix, false);
-
-        reflectionImage=Bitmap.createScaledBitmap(reflectionImage, reflectionImage.getWidth()/8, reflectionImage.getHeight()/8, true);
-
-        reflectionImage=Bitmap.createScaledBitmap(reflectionImage, reflectionImage.getWidth()*8, reflectionImage.getHeight()*8, true);
-
+        Bitmap reflectionImage = Bitmap.createBitmap(src, 0, 0, width, height , matrix, false);
         reflectionImage=Bitmap.createScaledBitmap(reflectionImage, width, (3*height/4), true);
 
         //lam mo anh phan chieu
         reflectionImage = blur(reflectionImage);
 
         //ghep song vao anh phan chieu
-
+        int[] src_temp = AndroidUtils.bitmapToIntArray(reflectionImage);
+        RippleFilter filter = new RippleFilter();
+        filter.setWaveType(0);
+        src_temp = filter.filter(src_temp, reflectionImage.getWidth(), reflectionImage.getHeight());
+        reflectionImage = Bitmap.createBitmap(src_temp, reflectionImage.getWidth(), reflectionImage.getHeight(), Bitmap.Config.ARGB_8888);
 
 
         //ghepp anh phan chieu
-        android.graphics.Bitmap reflectedBitmap = Bitmap.createBitmap(width, (height + (3 * height / 4)), Bitmap.Config.ARGB_8888);
+        Bitmap reflectedBitmap = Bitmap.createBitmap(width, (height + (3 * height / 4)), Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(reflectedBitmap);
         canvas.drawBitmap(src, 0, 0, null);
         Paint defaultPaint = new Paint();
@@ -438,6 +436,14 @@ public class ImageEdit extends Activity {
         } else {
             return image;
         }
+    }
+
+    private boolean supported(Bitmap src){
+        int ratio = src.getHeight()/src.getWidth();
+        if (ratio == 16/9 || ratio == 4/3){
+            return true;
+        }
+        else return false;
     }
 
     private Bitmap getBitmapFromAssets(String name){

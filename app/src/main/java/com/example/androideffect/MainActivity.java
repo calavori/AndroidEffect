@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.content.FileProvider;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -20,7 +19,6 @@ import android.net.Uri;
 import com.gun0912.tedpermission.PermissionListener;
 import com.gun0912.tedpermission.TedPermission;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -67,7 +65,7 @@ public class MainActivity extends Activity {
         super.onStart();
         this.gallerybutton = (Button) this.findViewById(R.id.gallerybutton);
         this.camerabutton = (Button) this.findViewById(R.id.camerabutton);
-        this.imageView = (ImageView) this.findViewById(R.id.imageView3);
+//        this.imageView = (ImageView) this.findViewById(R.id.imageView3);
 
         this.camerabutton.setOnClickListener(new Button.OnClickListener() {
             @Override
@@ -143,15 +141,14 @@ public class MainActivity extends Activity {
         Uri selectedImage = null;
         if (requestCode == REQUEST_ID_IMAGE_CAPTURE) {     //ket qua chup anh
             if (resultCode == RESULT_OK) {
-//                Bitmap bp = (Bitmap) data.getExtras().get("data");
                 File f = new File(currentPhotoPath);
                 selectedImage = Uri.fromFile(f);
-                try {
-                    Bitmap bp = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedImage);
-                    this.imageView.setImageBitmap(bp);
-                } catch (Exception e) {
-                    System.out.print(e);
-                }
+//                try {
+//                    Bitmap bp = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedImage);
+//                    this.imageView.setImageBitmap(bp);
+//                } catch (Exception e) {
+//                    System.out.print(e);
+//                }
                 Intent edit = new Intent(MainActivity.this, ImageEdit.class);
                 edit.putExtra("string", selectedImage.toString());
                 MainActivity.this.startActivity(edit);
@@ -163,12 +160,12 @@ public class MainActivity extends Activity {
         } else if(requestCode == GALLERY_REQUEST){
             if (resultCode == RESULT_OK) {
                 selectedImage = data.getData();
-                try {
-                    Bitmap bp = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedImage);
-                    this.imageView.setImageBitmap(bp);
-                } catch (Exception e) {
-                    System.out.print(e);
-                }
+//                try {
+//                    Bitmap bp = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedImage);
+////                    this.imageView.setImageBitmap(bp);
+//                } catch (Exception e) {
+//                    System.out.print(e);
+//                }
                 Intent edit = new Intent(MainActivity.this, ImageEdit.class);
                 edit.putExtra("string", selectedImage.toString());
                 MainActivity.this.startActivity(edit);

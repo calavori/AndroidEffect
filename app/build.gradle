@@ -17,6 +17,7 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+
     }
     //Exclude duplicates
     packagingOptions {
@@ -38,4 +39,8 @@ dependencies {
     implementation 'org.bytedeco:javacv:1.4.4'
     implementation 'gun0912.ted:tedpermission:2.2.2'
     implementation 'com.google.android.gms:play-services-vision:17.0.2'
+//    implementation project(path: ':ImageFilters')
+// https://mvnrepository.com/artifact/com.jhlabs/filters
+    //compile group: 'com.jhlabs', name: 'filters', version: '2.0.235-1'
+
 }

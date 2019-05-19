@@ -40,19 +40,19 @@
         android:layout_marginBottom="5dp"
         android:text="Glitch effetct"
         app:layout_constraintBottom_toTopOf="@+id/resetbutton"
-        app:layout_constraintEnd_toStartOf="@+id/eyebutton"
+        app:layout_constraintEnd_toStartOf="@+id/waterbutton"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/snowbutton" />
 
     <Button
-        android:id="@+id/eyebutton"
+        android:id="@+id/waterbutton"
         android:layout_width="0dp"
         android:layout_height="40dp"
         android:layout_marginStart="5dp"
         android:layout_marginTop="5dp"
         android:layout_marginEnd="5dp"
         android:layout_marginBottom="5dp"
-        android:text="Change eye color"
+        android:text="Water reflect "
         app:layout_constraintBottom_toTopOf="@+id/savebutton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/glitchbutton"
@@ -83,7 +83,7 @@
         android:layout_marginEnd="5dp"
         android:layout_marginBottom="5dp"
         android:text="Mirror broken effect"
-        app:layout_constraintBottom_toTopOf="@+id/eyebutton"
+        app:layout_constraintBottom_toTopOf="@+id/waterbutton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/snowbutton"
         app:layout_constraintTop_toBottomOf="@+id/imageView" />
@@ -100,5 +100,5 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/resetbutton"
-        app:layout_constraintTop_toBottomOf="@+id/eyebutton" />
+        app:layout_constraintTop_toBottomOf="@+id/waterbutton" />
 </android.support.constraint.ConstraintLayout>
