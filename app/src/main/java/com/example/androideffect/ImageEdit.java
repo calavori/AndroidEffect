@@ -77,7 +77,7 @@ public class ImageEdit extends Activity {
                 matrix.postRotate(90);
                 src_bmp = Bitmap.createBitmap(src_bmp , 0, 0, src_bmp.getWidth(), src_bmp.getHeight(), matrix, true);
             }
-        this.imageView = this.findViewById(R.id.imageView);
+        this.imageView = this.findViewById(R.id.imageview);
         imageView.setImageBitmap(src_bmp);
         final_bmp = src_bmp;
 

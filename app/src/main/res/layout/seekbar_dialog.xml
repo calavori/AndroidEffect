@@ -1,18 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent" android:layout_height="match_parent">
+    android:layout_width="match_parent"
+    android:layout_height="260dp"
+    android:background="@color/silkCrepeBSrown"
+    android:textColor="#ffffff">
 
     <TextView
         android:id="@+id/seed"
         android:layout_width="412dp"
         android:layout_height="wrap_content"
+        android:layout_below="@+id/titlelayout"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
         android:layout_marginLeft="0dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="0dp"
+        android:layout_marginRight="0dp"
         android:text="Seed"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="#ffffff" />
 
     <TextView
         android:id="@+id/shift"
@@ -27,7 +34,8 @@
         android:layout_marginEnd="0dp"
         android:layout_marginRight="0dp"
         android:text="RBG Shift"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="#ffffff" />
 
     <TextView
         android:id="@+id/thickness"
@@ -42,7 +50,8 @@
         android:layout_marginEnd="0dp"
         android:layout_marginRight="0dp"
         android:text="Thickness"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="#ffffff" />
 
     <SeekBar
         android:id="@+id/seed_bar"
@@ -72,7 +81,7 @@
 
     <SeekBar
         android:id="@+id/thickness_bar"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/thickness"
         android:layout_alignStart="@+id/thickness"
@@ -85,14 +94,39 @@
 
     <Button
         android:id="@+id/ok_button"
-        android:layout_width="wrap_content"
+        android:layout_width="200dp"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
         android:layout_below="@+id/thickness_bar"
-        android:layout_alignLeft="@+id/thickness_bar"
-        android:layout_alignStart="@+id/thickness_bar"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentStart="true"
         android:layout_alignParentEnd="true"
-        android:text="OK" />
+        android:layout_marginStart="80dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="80dp"
+        android:background="@color/blackChestnut"
+        android:text="OK"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textColor="#ffffff" />
+
+    <FrameLayout
+        android:id="@+id/titlelayout"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginStart="0dp"
+        android:layout_marginLeft="0dp">
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center | bottom"
+            android:text="GLITCH PARAMETER"
+            android:textColor="#ffffff"
+            android:textSize="15dp" />
+    </FrameLayout>
 
 </RelativeLayout>
